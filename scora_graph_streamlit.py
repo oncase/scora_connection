@@ -21,20 +21,30 @@ def read_file_or_path(url):
     return pd.read_csv(url)
 
 
-def render_graph(path_url, width=700, height=465, path_file='./html_files'):
+def clear_duplicates_and_sort(arr):
+    new_arr = list(dict.fromkeys(arr))
+    new_arr.sort()
+    return new_arr
+
+
+def render_graph(path_url, width=704, height=500, path_file='./html_files', bgcolor='#222222', font_color='white'):
     df = pd.read_csv(path_url)
     start_tables = st.multiselect(
-        "Escolha as tabelas do início da conexão", list(df.start_table))
+        "Escolha as tabelas do início da conexão", clear_duplicates_and_sort(
+            list(df.start_table))
+    )
     end_tables = st.multiselect(
-        "Escolha as tabelas do final da conexão", list(df.end_table))
+        "Escolha as tabelas do final da conexão", clear_duplicates_and_sort(
+            list(df.end_table))
+    )
 
     graph = Network(width="100%",
-                    bgcolor='#222222', font_color='white')
+                    bgcolor=bgcolor, font_color=font_color)
 
-    for start, connection, end in zip(df.start_table.to_list(), df.connection.to_list(), df.end_table.to_list()):
-        if len(start_tables) and start not in start_tables:
-            continue
-        if len(end_tables) and end not in end_tables:
+    table = zip(df.start_table.to_list(),
+                df.connection.to_list(), df.end_table.to_list())
+    for start, connection, end in table:
+        if (len(start_tables) and start not in start_tables) or (len(end_tables) and end not in end_tables):
             continue
         graph.add_node(start, title=start, size=10, physics=True)
         graph.add_node(end, title=end, size=10, physics=True)
